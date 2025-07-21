@@ -32,11 +32,11 @@ public class User {
     @Column(length = 20)
     private String phone;
 
-    @Column(nullable = false)
-    private double latitude;
+    @Column(nullable = true)
+    private Double latitude;
 
-    @Column(nullable = false)
-    private double longitude;
+    @Column(nullable = true)
+    private Double longitude;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
