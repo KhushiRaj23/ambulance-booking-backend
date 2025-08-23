@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.ambulancebooking.ambulance_backend.repository.UserRepository;
 import com.ambulancebooking.ambulance_backend.model.User;
+import com.ambulancebooking.ambulance_backend.exception.ResourceNotFoundException;
 
 @RestController
 @RequestMapping("/api/booking")
@@ -24,24 +25,16 @@ public class BookingController {
 
     @PostMapping("/book")
     public ResponseEntity<?> bookAmbulance(@RequestBody BookingRequest request) {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
-            Booking booking = bookingService.bookAmbulance(user.getId(), request);
-            return ResponseEntity.ok(booking);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Booking booking = bookingService.bookAmbulance(user.getId(), request);
+        return ResponseEntity.ok(booking);
     }
 
     @GetMapping("/history")
     public ResponseEntity<?> getBookingHistory(@RequestParam Long userId) {
-        try {
-            List<Booking> bookings = bookingService.getBookingHistory(userId);
-            return ResponseEntity.ok(bookings);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+        List<Booking> bookings = bookingService.getBookingHistory(userId);
+        return ResponseEntity.ok(bookings);
     }
 } 

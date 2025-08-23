@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.ambulancebooking.ambulance_backend.repository.UserRepository;
 import com.ambulancebooking.ambulance_backend.model.User;
+import com.ambulancebooking.ambulance_backend.exception.ResourceNotFoundException;
 
 @RestController
 @RequestMapping("/api/user")
@@ -25,37 +26,25 @@ public class UserController {
 
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile(@RequestParam Long userId) {
-        try {
-            UserResponse response = userService.getUserProfile(userId);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+        UserResponse response = userService.getUserProfile(userId);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/profile")
     public ResponseEntity<?> updateProfile(@RequestBody UserProfileUpdateRequest updateRequest) {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
-            UserResponse response = userService.updateUserProfile(user.getId(), updateRequest);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        UserResponse response = userService.updateUserProfile(user.getId(), updateRequest);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/booking/history")
     public ResponseEntity<?> getBookingHistory() {
-        try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
-            List<Booking> bookings = userService.getBookingHistory(user.getId());
-            return ResponseEntity.ok(bookings);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        List<Booking> bookings = userService.getBookingHistory(user.getId());
+        return ResponseEntity.ok(bookings);
     }
 } 
