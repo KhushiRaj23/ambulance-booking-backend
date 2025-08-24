@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # Test service for running unit and integration tests
+  test:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: ambulance-backend-test
+    environment:
+      # Test database configuration (using H2 in-memory)
+      SPRING_PROFILES_ACTIVE: test
+      SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ""
+      JWT_SECRET: test-jwt-secret-key-for-testing-purposes-only
+      FRONTEND_URL: http://localhost:3000
+      GOOGLE_DISTANCE_MATRIX_API: test-api-key
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: ["mvn", "test"]
+    networks:
+      - test-network
+
+  # Integration test service with PostgreSQL
+  integration-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: ambulance-integration-test
+    environment:
+      SPRING_PROFILES_ACTIVE: test
+      DATASOURCE_URL: jdbc:postgresql://test-postgres:5432/ambulance_test
+      DATASOURCE_USERNAME: postgres
+      DATASOURCE_PASSWORD: testpassword
+      JWT_SECRET: test-jwt-secret-key-for-testing-purposes-only
+      FRONTEND_URL: http://localhost:3000
+      GOOGLE_DISTANCE_MATRIX_API: test-api-key
+    depends_on:
+      test-postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: ["mvn", "test"]
+    networks:
+      - test-network
+
+  # Test PostgreSQL database
+  test-postgres:
+    image: postgres:15-alpine
+    container_name: ambulance-test-postgres
+    environment:
+      POSTGRES_DB: ambulance_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: testpassword
+    ports:
+      - "5433:5432"
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ambulance_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    tmpfs:
+      - /var/lib/postgresql/data:rw,noexec,nosuid,size=100m
+
+networks:
+  test-network:
+    driver: bridge

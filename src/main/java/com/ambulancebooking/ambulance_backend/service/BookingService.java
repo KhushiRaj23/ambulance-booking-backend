@@ -7,4 +7,7 @@ import java.util.List;
 public interface BookingService {
     Booking bookAmbulance(Long userId, BookingRequest request);
     List<Booking> getBookingHistory(Long userId);
+    List<Booking> getActiveBookings(Long userId);
+    Booking completeBooking(Long bookingId);
+    Booking cancelBooking(Long bookingId);
 } 

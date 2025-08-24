@@ -12,4 +12,8 @@ public interface AmbulanceRepository extends JpaRepository<Ambulance, Long> {
     List<Ambulance> findByHospitalIdAndStatus(Long hospitalId, AmbulanceStatus status);
     List<Ambulance> findByHospitalId(Long hospitalId);
     Page<Ambulance> findByHospitalIdAndStatus(Long hospitalId, AmbulanceStatus status, Pageable pageable);
+    
+    // Count methods for statistics
+    long countByHospitalId(Long hospitalId);
+    long countByHospitalIdAndStatus(Long hospitalId, AmbulanceStatus status);
 } 

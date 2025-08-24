@@ -42,6 +42,12 @@ public class Booking {
     @Column(nullable = false)
     private LocalDateTime bookingTime;
 
+    @Column
+    private LocalDateTime completionTime;
+
+    @Column
+    private LocalDateTime cancellationTime;
+
     @OneToOne(cascade = CascadeType.ALL, optional = false)
     @JoinColumn(name = "patient_id")
     private Patient patient;

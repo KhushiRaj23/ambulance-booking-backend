@@ -1,0 +1,47 @@
+# Exclude target directory except the final JAR
+target/*
+!target/*.jar
+
+# Exclude development and build files
+.git
+.gitignore
+*.md
+README.md
+HELP.md
+
+# Exclude IDE files
+.idea
+.vscode
+*.iml
+*.ipr
+*.iws
+
+# Exclude OS files
+.DS_Store
+Thumbs.db
+
+# Exclude logs
+*.log
+logs/
+
+# Exclude temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Exclude node_modules if any frontend assets
+node_modules/
+
+# Exclude Docker files
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Exclude environment files (should be provided at runtime)
+.env
+*.env
+
+# Exclude test reports
+test-results/
+coverage/

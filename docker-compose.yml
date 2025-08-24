@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ambulance-postgres
+    environment:
+      POSTGRES_DB: ambulance_booking
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ambulance-network
+    restart: unless-stopped
+
+  # Ambulance Booking Backend
+  app:
+    build: .
+    container_name: ambulance-backend
+    environment:
+      # Database configuration
+      DATASOURCE_URL: jdbc:postgresql://postgres:5432/ambulance_booking
+      DATASOURCE_USERNAME: postgres
+      DATASOURCE_PASSWORD: password
+      
+      # JWT Configuration
+      JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
+      
+      # Google Maps API (replace with your actual API key)
+      GOOGLE_DISTANCE_MATRIX_API: your-google-maps-api-key
+      
+      # Frontend URL (adjust as needed)
+      FRONTEND_URL: http://localhost:3000
+      
+      # Spring Profile
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - ambulance-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  ambulance-network:
+    driver: bridge

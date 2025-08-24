@@ -66,4 +66,54 @@ public class BookingServiceImpl implements BookingService {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         return bookingRepository.findAll().stream().filter(b -> b.getUser().getId().equals(userId)).toList();
     }
+
+    @Override
+    public List<Booking> getActiveBookings(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        return bookingRepository.findAll().stream()
+                .filter(b -> b.getUser().getId().equals(userId) && b.getBookingStatus() == BookingStatus.ACTIVE)
+                .toList();
+    }
+
+    @Override
+    public Booking completeBooking(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+        
+        if (booking.getBookingStatus() != BookingStatus.ACTIVE) {
+            throw new RuntimeException("Booking is not active");
+        }
+        
+        // Update booking status
+        booking.setBookingStatus(BookingStatus.COMPLETED);
+        booking.setCompletionTime(LocalDateTime.now());
+        
+        // Update ambulance status back to AVAILABLE
+        Ambulance ambulance = booking.getAmbulance();
+        ambulance.setStatus(AmbulanceStatus.AVAILABLE);
+        ambulanceRepository.save(ambulance);
+        
+        return bookingRepository.save(booking);
+    }
+
+    @Override
+    public Booking cancelBooking(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+        
+        if (booking.getBookingStatus() != BookingStatus.ACTIVE) {
+            throw new RuntimeException("Booking is not active");
+        }
+        
+        // Update booking status
+        booking.setBookingStatus(BookingStatus.CANCELLED);
+        booking.setCancellationTime(LocalDateTime.now());
+        
+        // Update ambulance status back to AVAILABLE
+        Ambulance ambulance = booking.getAmbulance();
+        ambulance.setStatus(AmbulanceStatus.AVAILABLE);
+        ambulanceRepository.save(ambulance);
+        
+        return bookingRepository.save(booking);
+    }
 } 

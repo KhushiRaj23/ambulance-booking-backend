@@ -33,8 +33,40 @@ public class BookingController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<?> getBookingHistory(@RequestParam Long userId) {
-        List<Booking> bookings = bookingService.getBookingHistory(userId);
+    public ResponseEntity<?> getBookingHistory() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        List<Booking> bookings = bookingService.getBookingHistory(user.getId());
         return ResponseEntity.ok(bookings);
+    }
+
+    @GetMapping("/active")
+    public ResponseEntity<?> getActiveBookings() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        List<Booking> activeBookings = bookingService.getActiveBookings(user.getId());
+        return ResponseEntity.ok(activeBookings);
+    }
+
+    @PostMapping("/{bookingId}/complete")
+    public ResponseEntity<?> completeBooking(@PathVariable Long bookingId) {
+        try {
+            Booking booking = bookingService.completeBooking(bookingId);
+            return ResponseEntity.ok(booking);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Error completing booking: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/{bookingId}/cancel")
+    public ResponseEntity<?> cancelBooking(@PathVariable Long bookingId) {
+        try {
+            Booking booking = bookingService.cancelBooking(bookingId);
+            return ResponseEntity.ok(booking);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Error cancelling booking: " + e.getMessage());
+        }
     }
 } 

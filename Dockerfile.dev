@@ -1,0 +1,31 @@
+# Development Dockerfile for Ambulance Booking System
+# This version is optimized for development with faster build times
+
+FROM openjdk:24-jdk-slim
+
+# Install Maven for development builds
+RUN apt-get update && apt-get install -y \
+    maven \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set the working directory
+WORKDIR /app
+
+# Copy pom.xml and download dependencies first for better caching
+COPY pom.xml ./
+RUN mvn dependency:go-offline -B
+
+# Copy source code
+COPY src ./src
+
+# Expose the port
+EXPOSE 8080
+
+# Set development profile
+ENV SPRING_PROFILES_ACTIVE=local
+ENV JAVA_OPTS="-Xmx512m -Xms256m -Djava.security.egd=file:/dev/./urandom"
+
+# For development, we'll use Maven to run the application directly
+# This allows for faster rebuilds during development
+CMD ["mvn", "spring-boot:run"]
